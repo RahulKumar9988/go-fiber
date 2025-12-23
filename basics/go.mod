@@ -1,4 +1,4 @@
-module github.com/rahulkumar/go-fiber
+module github.com/rahulkumar/basics
 
 go 1.22.2
 
