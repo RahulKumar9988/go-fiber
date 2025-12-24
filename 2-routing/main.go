@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -16,11 +17,44 @@ type ErrorResponse struct {
 	Status  string
 }
 
+//cookies struct
+
+type Cookie struct {
+	Name        string    `json:"name"`
+	Value       string    `json:"value"`
+	Path        string    `json:"path"`
+	Domain      string    `json:"domain"`
+	MaxAge      int       `json:"max_age"`
+	Expires     time.Time `json:"expires"`
+	Secure      bool      `json:"secure"`
+	HTTPOnly    bool      `json:"http_only"`
+	SameSite    string    `json:"same_site"`
+	SessionOnly bool      `json:"session_only"`
+}
+
 func main() {
 	app := fiber.New()
 
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("leaning about routing")
+	app.Get("/login", func(c *fiber.Ctx) error {
+
+		cookieAuth := new(fiber.Cookie)
+		cookieAuth.Name = "rahul"
+		cookieAuth.Value = "asda@#@$ASD%11"
+		cookieAuth.MaxAge = 100
+		cookieAuth.Expires = time.Now().Add(24 * time.Hour)
+		c.Cookie(cookieAuth)
+		return c.SendStatus(fiber.StatusOK)
+	})
+
+	app.Get("/checkout", func(c *fiber.Ctx) error {
+		c.Cookies("rahul")
+		fmt.Println("rahul : ", c.Cookies("rahul"))
+		return c.SendStatus(fiber.StatusOK)
+	})
+
+	app.Get("/logout", func(c *fiber.Ctx) error {
+		c.ClearCookie()
+		return c.SendStatus(fiber.StatusOK)
 	})
 
 	app.Get("/store/:storeName/:product", func(c *fiber.Ctx) error {
@@ -48,6 +82,7 @@ func main() {
 		})
 
 	})
+
 	app.Server().MaxConnsPerIP = 2
 	app.Listen(":3000")
 }
