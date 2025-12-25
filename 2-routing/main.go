@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -39,8 +42,133 @@ type QueryUser struct {
 	IsAdmin bool   `query:"isAdmin"`
 }
 
+func rndNumber() int {
+	id := rand.Int()
+	fmt.Printf("id is : ", id)
+	return id
+}
+
 func main() {
 	app := fiber.New()
+
+	// playing with files
+
+	app.Post("/upload", func(c *fiber.Ctx) error {
+
+		file, err := c.FormFile("profile")
+		if err != nil {
+			return c.Status(fiber.ErrBadRequest.Code).
+				JSON(fiber.Map{
+					"message": "file is required",
+				})
+		}
+
+		if file.Size > 2*1024*1024 {
+			return c.Status(fiber.ErrBadRequest.Code).
+				JSON(fiber.Map{
+					"message": "size should be less then 2MB",
+				})
+		}
+
+		allowType := map[string]bool{
+			"image/webp": true,
+			"image/png":  true,
+		}
+
+		if !allowType[file.Header.Get("Content-Type")] {
+			return c.Status(fiber.ErrBadRequest.Code).
+				JSON(fiber.Map{
+					"message": "filetype not matched",
+				})
+		}
+
+		uplaodDir := "./uploads"
+		os.MkdirAll(uplaodDir, os.ModePerm)
+
+		ext := filepath.Ext(file.Filename)
+		fileName := fmt.Sprintf("%d%s", time.Now().UnixNano(), ext)
+		path := filepath.Join(uplaodDir, fileName)
+
+		if err := c.SaveFile(file, path); err != nil {
+			return c.Status(fiber.StatusInternalServerError).
+				JSON(fiber.Map{
+					"message": "failed to upload file",
+				})
+		}
+
+		return c.JSON(fiber.Map{
+			"message": "file uplaod sucessfully",
+			"file":    fileName,
+		})
+	})
+
+	app.Post("/bulk-upload", func(c *fiber.Ctx) error {
+
+		form, err := c.MultipartForm()
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).
+				JSON(fiber.Map{
+					"error": "failed to pars file",
+				})
+		}
+
+		files := form.File["notes"]
+
+		if len(files) == 0 {
+			return c.Status(fiber.StatusBadRequest).
+				JSON(fiber.Map{
+					"error": "at list 1 file required",
+				})
+		}
+
+		fileType := map[string]bool{
+			"image/webp": true,
+			"image/png":  true,
+		}
+
+		for _, file := range files {
+			if !fileType[file.Header.Get("Content-Type")] {
+				return c.Status(fiber.StatusBadRequest).
+					JSON(fiber.Map{
+						"message": "file doesnot supported",
+					})
+			}
+
+		}
+
+		uplaodDir := "./uploads"
+		if err := os.MkdirAll(uplaodDir, os.ModePerm); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": err,
+			})
+		}
+
+		var uploadFilesLists []string
+
+		for _, file := range files {
+			path := filepath.Join(uplaodDir, file.Filename)
+
+			if err := c.SaveFile(file, path); err != nil {
+				return c.Status(fiber.StatusBadRequest).
+					JSON(fiber.Map{
+						"error": err,
+					})
+			}
+
+			uploadFilesLists = append(uploadFilesLists, file.Filename)
+
+		}
+
+		return c.JSON(fiber.Map{
+			"message": "files uploded sucessfully",
+			"fiels":   uploadFilesLists,
+		})
+
+	})
+
+	app.Get("/download", func(c *fiber.Ctx) error {
+		return c.Download("./Screenshot from 2025-12-23 17-42-22.png")
+	})
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		user := new(QueryUser)
@@ -86,6 +214,7 @@ func main() {
 
 		return c.SendStatus(fiber.StatusOK)
 	})
+
 	app.Server().MaxConnsPerIP = 2
 	app.Listen(":3000")
 }
