@@ -2,14 +2,16 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-type Person struct {
-	Name string `json:"name" db:"namae"`
-	Age  int    `json:"age" db:"age"`
+type Verification struct {
+	Name    string `json:"name" db:"name"`
+	Role    string `json:"role" db:"role"`
+	IsHuman bool   `json:"isHuman" db:"isHuman"`
 }
 
 type ErrorResponse struct {
@@ -17,8 +19,7 @@ type ErrorResponse struct {
 	Status  string
 }
 
-//cookies struct
-
+// cookies struct
 type Cookie struct {
 	Name        string    `json:"name"`
 	Value       string    `json:"value"`
@@ -32,8 +33,28 @@ type Cookie struct {
 	SessionOnly bool      `json:"session_only"`
 }
 
+type QueryUser struct {
+	ID      int    `query:"id"`
+	Dpt     string `query:"dpt"`
+	IsAdmin bool   `query:"isAdmin"`
+}
+
 func main() {
 	app := fiber.New()
+
+	app.Get("/", func(c *fiber.Ctx) error {
+		user := new(QueryUser)
+
+		if err := c.QueryParser(user); err != nil {
+			return err
+		}
+
+		log.Println("id", user.ID)
+		log.Println("dpt", user.Dpt)
+		log.Println("isAdmin", user.IsAdmin)
+
+		return c.Status(fiber.StatusOK).JSON(user)
+	})
 
 	app.Get("/login", func(c *fiber.Ctx) error {
 
@@ -65,24 +86,6 @@ func main() {
 
 		return c.SendStatus(fiber.StatusOK)
 	})
-
-	app.Post("/pars", func(c *fiber.Ctx) error {
-		p := new(Person)
-		if err := c.BodyParser(p); err != nil {
-			c.Locals("message : ", "Error found", err)
-			return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{
-				Message: "Pass the body",
-				Status:  "400",
-			})
-		}
-
-		return c.Status(fiber.StatusOK).JSON(Person{
-			Name: p.Name,
-			Age:  p.Age,
-		})
-
-	})
-
 	app.Server().MaxConnsPerIP = 2
 	app.Listen(":3000")
 }
