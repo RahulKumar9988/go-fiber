@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"time"
@@ -42,15 +40,36 @@ type QueryUser struct {
 	IsAdmin bool   `query:"isAdmin"`
 }
 
-func rndNumber() int {
-	id := rand.Int()
-	fmt.Printf("id is : ", id)
-	return id
-}
+type userType struct{}
+
+var userkey userType
 
 func main() {
 	app := fiber.New()
 
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals(userkey, "rj@123")
+		if c.Locals(userkey) == "" {
+			return c.Status(fiber.StatusBadGateway).
+				JSON(fiber.Map{
+					"message": "local is empty",
+				})
+		}
+		return c.Next()
+	})
+
+	app.Get("/", func(c *fiber.Ctx) error {
+		user, ok := c.Locals(userkey).(string)
+
+		if ok && user == "rj@123" {
+			return c.Status(fiber.StatusOK).
+				JSON(fiber.Map{
+					"message": "welcome rj",
+					"userKey": userkey,
+				})
+		}
+		return c.SendStatus(fiber.StatusForbidden)
+	})
 	// playing with files
 
 	app.Post("/upload", func(c *fiber.Ctx) error {
@@ -170,19 +189,19 @@ func main() {
 		return c.Download("./Screenshot from 2025-12-23 17-42-22.png")
 	})
 
-	app.Get("/", func(c *fiber.Ctx) error {
-		user := new(QueryUser)
+	// app.Get("/", func(c *fiber.Ctx) error {
+	// 	user := new(QueryUser)
 
-		if err := c.QueryParser(user); err != nil {
-			return err
-		}
+	// 	if err := c.QueryParser(user); err != nil {
+	// 		return err
+	// 	}
 
-		log.Println("id", user.ID)
-		log.Println("dpt", user.Dpt)
-		log.Println("isAdmin", user.IsAdmin)
+	// 	log.Println("id", user.ID)
+	// 	log.Println("dpt", user.Dpt)
+	// 	log.Println("isAdmin", user.IsAdmin)
 
-		return c.Status(fiber.StatusOK).JSON(user)
-	})
+	// 	return c.Status(fiber.StatusOK).JSON(user)
+	// })
 
 	app.Get("/login", func(c *fiber.Ctx) error {
 

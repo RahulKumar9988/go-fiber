@@ -1,5 +1,5 @@
 package routing
 
-func userRouter() {
+func main() {
 
 }
