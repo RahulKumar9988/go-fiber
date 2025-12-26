@@ -4,7 +4,7 @@ import "github.com/api-auth/enum"
 
 type User struct {
 	ID       uint   `json:"id" gorm:"primeryKey"`
-	Email    string `json:"username" validate:"required,email"`
+	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required"`
 }
 
