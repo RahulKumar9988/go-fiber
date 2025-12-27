@@ -6,6 +6,8 @@ import (
 )
 
 func BooksRouter(route fiber.Router, db *gorm.DB) {
+
+	// get-all-books
 	route.Get("/", func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusOK).
 			JSON(fiber.Map{
@@ -13,6 +15,7 @@ func BooksRouter(route fiber.Router, db *gorm.DB) {
 			})
 	})
 
+	// get-book-by-id
 	route.Get("/:id", func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusOK).
 			JSON(fiber.Map{
@@ -20,6 +23,7 @@ func BooksRouter(route fiber.Router, db *gorm.DB) {
 			})
 	})
 
+	// post-book
 	route.Post("/", func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusOK).
 			JSON(fiber.Map{
@@ -27,6 +31,7 @@ func BooksRouter(route fiber.Router, db *gorm.DB) {
 			})
 	})
 
+	// post-book-by-id
 	route.Patch("/:id", func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusOK).
 			JSON(fiber.Map{
@@ -34,6 +39,7 @@ func BooksRouter(route fiber.Router, db *gorm.DB) {
 			})
 	})
 
+	// delete-book-by-id
 	route.Delete("/:id", func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusOK).
 			JSON(fiber.Map{

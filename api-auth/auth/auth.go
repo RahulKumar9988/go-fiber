@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"log"
+
 	"github.com/api-auth/models"
 	"github.com/api-auth/utils"
 	"github.com/go-playground/validator/v10"
@@ -16,6 +18,7 @@ import (
 
 func AuthHandlers(route fiber.Router, db *gorm.DB) {
 
+	//user-regitser-route
 	route.Post("/register", func(c *fiber.Ctx) error {
 
 		// body-parser validation
@@ -70,7 +73,7 @@ func AuthHandlers(route fiber.Router, db *gorm.DB) {
 			})
 	})
 
-	// booking route
+	// user-login-route
 	route.Post("/login", func(c *fiber.Ctx) error {
 		validate := validator.New()
 		var user models.User
@@ -125,9 +128,22 @@ func AuthHandlers(route fiber.Router, db *gorm.DB) {
 
 		return c.Status(fiber.StatusOK).
 			JSON(fiber.Map{
-				"token": token,
+				"token":  token,
+				"UserID": dbUser.ID,
 			})
 
+	})
+
+	// logout-route
+	route.Post("/logout", func(c *fiber.Ctx) error {
+		
+		c.ClearCookie("JWT")
+		log.Println("user token removed", c.Cookies("JWT"))
+		return c.Status(fiber.StatusOK).
+			JSON(fiber.Map{
+				"success": true,
+				"message": "User Loged out",
+			})
 	})
 
 }
