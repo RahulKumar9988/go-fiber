@@ -13,7 +13,7 @@ func main() {
 	db := db.InitializeDB()
 
 	// creating fiber app instance
-	app := fiber.New(fiber.Config{
+	app := fiber.New(fiber.Config{				
 		AppName: "Library API",
 	})
 
