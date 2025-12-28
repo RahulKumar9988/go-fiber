@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func UserVerifucation(db *gorm.DB) fiber.Handler {
+func AuthMiddleware(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		cookieToken := c.Cookies("JWT")
 		var tokenString string
@@ -33,7 +33,7 @@ func UserVerifucation(db *gorm.DB) fiber.Handler {
 					})
 			}
 
-			tokenParts := strings.Split(authHeader, "")
+			tokenParts := strings.Split(authHeader, " ")
 			if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
 				return c.Status(fiber.StatusUnauthorized).
 					JSON(fiber.Map{

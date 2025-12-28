@@ -111,7 +111,7 @@ func AuthHandlers(route fiber.Router, db *gorm.DB) {
 			})
 		}
 
-		token, err := utils.GenerateToken(&user)
+		token, err := utils.GenerateToken(dbUser)
 		if err != nil {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 				"error": err.Error(),
@@ -136,7 +136,7 @@ func AuthHandlers(route fiber.Router, db *gorm.DB) {
 
 	// logout-route
 	route.Post("/logout", func(c *fiber.Ctx) error {
-		
+
 		c.ClearCookie("JWT")
 		log.Println("user token removed", c.Cookies("JWT"))
 		return c.Status(fiber.StatusOK).

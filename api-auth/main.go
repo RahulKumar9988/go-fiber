@@ -13,7 +13,7 @@ func main() {
 	db := db.InitializeDB()
 
 	// creating fiber app instance
-	app := fiber.New(fiber.Config{				
+	app := fiber.New(fiber.Config{
 		AppName: "Library API",
 	})
 
@@ -25,7 +25,7 @@ func main() {
 	auth.AuthHandlers(app.Group("/auth"), db)
 
 	// middleware
-	protected := app.Use(auth.UserVerifucation(db))
+	protected := app.Use(auth.AuthMiddleware(db))
 
 	//booking route
 	router.BooksRouter(protected.Group("/books"), db)
